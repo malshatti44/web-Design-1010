@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Level</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+</head>
+<body class="bg">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logoDot"></div>
+      <div>
+        <div id="levelTitle" class="brandTitle">Level</div>
+        <div class="brandSub">
+          المتعلم: <strong id="studentNameLabel">—</strong>
+          <span class="dotSep">•</span>
+          خطوة <strong id="stepLabel">1</strong> / <strong id="stepTotal">10</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="topActions">
+      <a class="btn ghost small" href="./index.html">↩ الرئيسية</a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- LEFT -->
+    <aside class="panel leftPanel">
+      <div class="panelHeader">
+        <div class="panelTitle">التعليمات</div>
+        <div class="tabs">
+          <button class="tab active" type="button" data-tab="instructions">Instructions</button>
+          <button class="tab" type="button" data-tab="hints">Hints</button>
+        </div>
+      </div>
+
+      <div class="panelBody">
+        <div id="tab-instructions">
+          <div id="instructionText" class="instructionBox"></div>
+        </div>
+
+        <div id="tab-hints" class="hidden">
+          <div class="hintsTop">
+            <button id="hintBtn" type="button" class="btn small">اطلب تلميح</button>
+          </div>
+          <div id="hintsBox" class="hintsBox"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER -->
+    <section class="panel centerPanel">
+      <div class="panelHeader">
+        <div class="panelTitle">Editor</div>
+        <div class="rowBtns">
+          <!-- زر إعادة الضبط بعد التعديل -->
+          <button id="resetPrevBtn" class="btn ghost small" type="button">إعادة ضبط الخطوة الحالية</button>
+          <button id="runBtn" class="btn small" type="button">Run</button>
+          <button id="checkBtn" class="btn primary small" type="button">Check</button>
+          <button id="submitBtn" class="btn primary small hidden" type="button">إرسال الحل</button>
+        </div>
+      </div>
+
+      <div class="panelBody editorBody">
+        <textarea id="editor"></textarea>
+        <div id="statusBox" class="statusBox">اكتب الكود ثم اضغط Check.</div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="panel rightPanel">
+      <div class="panelHeader">
+        <div class="panelTitle">Result</div>
+        <div class="smallTabs">
+          <button class="tab active" type="button" data-right="preview">Preview</button>
+          <button class="tab" type="button" data-right="console">Console</button>
+        </div>
+      </div>
+
+      <div class="panelBody">
+        <div id="right-preview">
+          <iframe id="previewFrame" class="previewFrame" title="Preview"></iframe>
+        </div>
+        <div id="right-console" class="hidden">
+          <pre id="consoleBox" class="consoleBox">/** Output */</pre>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Name Modal (per level) -->
+  <div id="nameModal" class="modal" aria-hidden="false">
+    <div class="modalCard">
+      <h2 class="h2">بدء المستوى</h2>
+      <p class="muted">اكتب الاسم الثلاثي لبدء الحل</p>
+
+      <label class="label">الاسم الثلاثي</label>
+      <input id="nameInput" class="input" placeholder="مثال: أحمد محمد حمد" autocomplete="off" />
+
+      <div id="nameErr" class="err"></div>
+
+      <button id="startBtn" class="btn primary full" type="button">ابدأ</button>
+    </div>
+  </div>
+
+  <!-- تم إزالة دالة copyToClipboard لأنها لم تعد مستخدمة -->
+
+  <!-- CodeMirror scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+
+  <script src="./assets/levels.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+</html>
