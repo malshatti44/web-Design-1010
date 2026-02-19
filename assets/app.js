@@ -37,6 +37,7 @@ let stepIndex = 0;
 let hintIndex = 0;
 let STUDENT_NAME = "";
 let LAST_STEP_PASSED = false;
+let START_LOGGED = false; // ✅ حتى ما يكرر Processing بالغلط
 
 function escapeHtml(s) {
   return (s || "").replace(/[&<>"']/g, (m) => ({
@@ -120,38 +121,25 @@ function addHint(step) {
   box.appendChild(div);
 }
 
-/* ================== SHEET LOGGING (Per Level Sheet) ================== */
-/* ✅ إرسال مؤكد بدون iframe */
-function logToSheet({ action, studentName, levelId, step, status }) {
+/* ================== SHEET LOGGING ==================
+   ✅ fetch JSON (ما يفتح /exec)
+   ✅ نسجّل فقط start و submit
+====================================================== */
+function logToSheet({ action, studentName, levelId }) {
   if (!SHEET_ENDPOINT) return Promise.reject(new Error("SHEET_ENDPOINT not set"));
 
-  return new Promise((resolve) => {
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = SHEET_ENDPOINT;
-    form.style.display = "none";
-
-    const fields = { action, studentName, levelId, step, status };
-
-    Object.keys(fields).forEach((k) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = k;
-      input.value = String(fields[k] ?? "");
-      form.appendChild(input);
+  return fetch(SHEET_ENDPOINT, {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    body: JSON.stringify({ action, studentName, levelId }),
+    keepalive: true,
+  })
+    .then((r) => r.json().catch(() => ({ ok: false, error: "Bad JSON response" })))
+    .then((j) => {
+      if (!j.ok) throw new Error(j.error || "Sheet log failed");
+      return true;
     });
-
-    document.body.appendChild(form);
-
-    try {
-      form.submit();
-      form.remove();
-      resolve(true);
-    } catch (e) {
-      form.remove();
-      resolve(false);
-    }
-  });
 }
 
 /* ================== STEP CONTROL ================== */
@@ -166,7 +154,6 @@ function loadStep(index) {
   qs("stepLabel").textContent = String(stepIndex + 1);
   qs("stepTotal").textContent = String(currentLevel.steps.length);
 
-  // ✅ آمن + منسق
   qs("instructionText").innerHTML = escapeHtml(step.instruction).replace(/\n/g, "<br>");
   qs("hintsBox").innerHTML = "";
 
@@ -206,14 +193,7 @@ function checkStep() {
   setStatus("ok", "✅ أنجزت الخطوة بنجاح!");
   logConsole("PASSED");
 
-  // ✅ سجّل نجاح الخطوة داخل شيت المستوى
-  logToSheet({
-    action: "progress",
-    studentName: STUDENT_NAME,
-    levelId: currentLevel.id,
-    step: stepIndex + 1,
-    status: "Passed",
-  }).catch(() => {});
+  // ❌ لا نسجل كل خطوة (حسب طلبك)
 
   if (stepIndex === currentLevel.steps.length - 1) {
     LAST_STEP_PASSED = true;
@@ -232,16 +212,15 @@ async function submitSolution() {
   }
 
   try {
+    // ✅ نسجّل فقط Submit = Complete
     await logToSheet({
       action: "submit",
       studentName: STUDENT_NAME,
       levelId: currentLevel.id,
-      step: currentLevel.steps.length,
-      status: "Submitted",
     });
 
-    setStatus("ok", "✅ تم إرسال الحل وتسجيله في شيت المستوى.");
-    logConsole("SUBMITTED ✅");
+    setStatus("ok", "✅ تم إرسال الحل وتسجيله: Complete");
+    logConsole("COMPLETE ✅");
   } catch (err) {
     console.error(err);
     setStatus("bad", `تعذر إرسال الحل: ${String(err.message || err)}`);
@@ -290,17 +269,28 @@ function initLevel() {
   const nameInput = qs("nameInput");
   const nameErr = qs("nameErr");
 
-  const start = () => {
+  const start = async () => {
     const name = (nameInput?.value || "").trim();
     if (!isValidTripleName(name)) {
       if (nameErr) nameErr.textContent = "اكتب الاسم الثلاثي بشكل صحيح (٣ كلمات على الأقل).";
       return;
     }
+
     STUDENT_NAME = name;
     qs("studentNameLabel").textContent = STUDENT_NAME;
 
     modal.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
+
+    // ✅ سجّل Processing مرة وحدة فقط عند الدخول
+    if (!START_LOGGED) {
+      START_LOGGED = true;
+      logToSheet({
+        action: "start",
+        studentName: STUDENT_NAME,
+        levelId: currentLevel.id,
+      }).catch(() => {});
+    }
 
     loadStep(0);
   };
