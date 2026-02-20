@@ -35,22 +35,27 @@ function setDone(levelId) {
   localStorage.setItem(DONE_KEY, JSON.stringify(m));
 }
 
-// ========== Google Sheet Logging ==========
-function logToSheet({ action, studentName, levelId }) {
-  if (!SHEET_ENDPOINT) return Promise.reject(new Error("SHEET_ENDPOINT not set"));
+// ========== Google Sheet Logging (No-CORS safe) ==========
+function logToSheet({ action, studentName, levelId, stepIndex }) {
+  if (!SHEET_ENDPOINT) return Promise.resolve(false);
 
   return fetch(SHEET_ENDPOINT, {
     method: "POST",
-    mode: "cors",
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
-    body: JSON.stringify({ action, studentName, levelId }),
+    mode: "no-cors", // ✅ يعمل مع GitHub Pages + iPhone Safari
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action,
+      studentName,
+      levelId,
+      stepIndex: stepIndex ?? "",
+      page: location.pathname,
+      ua: navigator.userAgent,
+      ts: new Date().toISOString(),
+    }),
     keepalive: true,
   })
-    .then((r) => r.json().catch(() => ({ ok: false, error: "Bad JSON response" })))
-    .then((j) => {
-      if (!j.ok) throw new Error(j.error || "Sheet log failed");
-      return true;
-    });
+    .then(() => true)
+    .catch(() => false);
 }
 
 // ========== HOME NAME MODAL ==========
@@ -286,22 +291,23 @@ async function submitSolution() {
     return;
   }
 
-  try {
-    await logToSheet({
-      action: "submit",
-      studentName: STUDENT_NAME,
-      levelId: currentLevel.id,
-    });
+  // ✅ حاول الإرسال (حتى لو لا نستطيع قراءة الرد بسبب no-cors)
+  const sent = await logToSheet({
+    action: "submit",
+    studentName: STUDENT_NAME,
+    levelId: currentLevel.id,
+    stepIndex,
+  });
 
-    // ✅ علّم المستوى مكتمل محليًا (للون الأخضر في الرئيسية)
-    setDone(currentLevel.id);
+  // ✅ علّم المستوى مكتمل محليًا دائمًا بعد ضغط Submit
+  setDone(currentLevel.id);
 
+  if (sent) {
     setStatus("ok", "✅ تم إرسال الحل وتسجيله: Complete");
     logConsole("COMPLETE ✅");
-  } catch (err) {
-    console.error(err);
-    setStatus("bad", `تعذر إرسال الحل: ${String(err.message || err)}`);
-    logConsole("SUBMIT FAILED");
+  } else {
+    setStatus("bad", "⚠️ تم حفظ الإكمال على جهازك، لكن تعذر الإرسال للشيت (تحقق من الإنترنت).");
+    logConsole("SUBMIT FAILED (offline/CORS)");
   }
 }
 
@@ -348,14 +354,15 @@ function initLevel() {
   qs("resetPrevBtn")?.addEventListener("click", resetToPreviousStepStarter);
   qs("submitBtn")?.addEventListener("click", submitSolution);
 
-  // ✅ سجّل start للمستوى مرة وحدة
+  // ✅ سجّل start للمستوى مرة وحدة (بدون كراش)
   if (!START_LOGGED) {
     START_LOGGED = true;
     logToSheet({
       action: "start",
       studentName: STUDENT_NAME,
       levelId: currentLevel.id,
-    }).catch(() => {});
+      stepIndex: 0,
+    });
   }
 
   showTabLeft("instructions");
