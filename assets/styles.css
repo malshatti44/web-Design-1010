@@ -1,11 +1,9 @@
 /* =========================
-   Web Design 1010 - Apple Minimal UI
+   Web Design 1010 - Full Responsive UI (Mobile + Desktop)
    Theme: default Dark, Light when html.light-mode exists
    ========================= */
 
-/* ---- Design Tokens ---- */
 :root{
-  /* Dark default */
   --bg: #0b1020;
   --surface: rgba(255,255,255,0.06);
   --surface-2: rgba(255,255,255,0.09);
@@ -21,6 +19,8 @@
   --radius: 18px;
   --container: 980px;
 
+  --ease: cubic-bezier(.2,.8,.2,1);
+
   /* Switch */
   --switch-w: 56px;
   --switch-h: 32px;
@@ -33,10 +33,10 @@
   --thumb-border: rgba(0,0,0,0.10);
   --glow: rgba(99,102,241,0.35);
 
-  --ease: cubic-bezier(.2,.8,.2,1);
+  --ok: #16a34a;
+  --bad: #ef4444;
 }
 
-/* Light mode overrides */
 html.light-mode{
   --bg: #ffffff;
   --surface: rgba(15, 23, 42, 0.04);
@@ -54,7 +54,6 @@ html.light-mode{
   --glow: rgba(139,92,246,0.25);
 }
 
-/* ---- Base ---- */
 *{ box-sizing:border-box; }
 html, body{ height:100%; }
 body.bg{
@@ -65,7 +64,10 @@ body.bg{
   transition: background-color .45s var(--ease), color .45s var(--ease);
 }
 
-/* ---- Layout ---- */
+a{ color: inherit; text-decoration: none; }
+.hidden{ display:none !important; }
+
+/* ---- Layout (Shared) ---- */
 .container{
   width: min(var(--container), calc(100% - 32px));
   margin: 26px auto 60px;
@@ -94,6 +96,7 @@ body.bg{
   gap: 12px;
   min-width: 0;
 }
+
 .logoDot{
   width: 12px;
   height: 12px;
@@ -102,11 +105,13 @@ body.bg{
   box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand) 25%, transparent);
   flex: 0 0 auto;
 }
+
 .brandTitle{
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: .2px;
   line-height: 1.1;
 }
+
 .brandSub{
   font-size: 13px;
   color: var(--muted);
@@ -114,10 +119,16 @@ body.bg{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 62vw;
+  max-width: 70vw;
 }
 
-/* ---- Card ---- */
+.dotSep{
+  display:inline-block;
+  margin: 0 8px;
+  opacity: .6;
+}
+
+/* ---- Card (Home) ---- */
 .card{
   background: var(--surface);
   border: 1px solid var(--border);
@@ -140,35 +151,67 @@ body.bg{
   font-size: 20px;
   letter-spacing: .2px;
 }
+
 .muted{
   margin: 2px 0 0;
   font-size: 13px;
   color: var(--muted);
 }
 
-/* Levels grid placeholder styling (if empty) */
 .levelsGrid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 12px;
   margin: 14px 0 16px;
 }
 
-/* Note */
 .note{
   border-radius: var(--radius);
   background: var(--surface-2);
   border: 1px solid var(--border);
   padding: 14px;
 }
+
 .noteTitle{
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 6px;
 }
+
 .noteBody{
   color: var(--muted);
   line-height: 1.7;
   font-size: 14px;
+}
+
+/* ---- Level buttons ---- */
+.levelBtn{
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform .15s ease, background-color .35s var(--ease), border-color .35s var(--ease);
+  text-align: center;
+}
+
+.levelBtn:hover{ transform: translateY(-1px); }
+.levelBtn:active{ transform: translateY(0) scale(0.98); }
+
+.levelBtn.isDone{
+  background: var(--ok) !important;
+  border-color: rgba(255,255,255,0.18) !important;
+  color: #fff !important;
+}
+.levelBtn.isDone::after{
+  content: "تم";
+  margin-inline-start: 10px;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
 }
 
 /* =========================
@@ -181,13 +224,11 @@ body.bg{
   user-select:none;
   -webkit-tap-highlight-color: transparent;
 }
-
 .themeSwitch input{
   position:absolute;
   opacity:0;
   pointer-events:none;
 }
-
 .switchTrack{
   width: var(--switch-w);
   height: var(--switch-h);
@@ -208,13 +249,11 @@ body.bg{
     transform .15s ease,
     box-shadow .35s var(--ease);
 }
-
 html.light-mode .switchTrack{
   box-shadow:
     inset 0 0 0 1px color-mix(in oklab, var(--border) 60%, transparent),
     0 10px 24px rgba(2,6,23,0.12);
 }
-
 .switchThumb{
   width: var(--thumb);
   height: var(--thumb);
@@ -235,28 +274,18 @@ html.light-mode .switchTrack{
     0 12px 20px rgba(0,0,0,0.18),
     0 2px 6px rgba(0,0,0,0.10);
 }
-
-/* checked = Dark (thumb moves left in RTL?) 
-   We want the thumb to slide visually "towards start/end" nicely in RTL.
-   In RTL, X positive moves left visually? Actually translateX is logical.
-   We'll keep consistent: unchecked (light) = thumb on right, checked (dark) = on left.
-*/
+/* Light mode => thumb to the other side (nice in RTL) */
 html.light-mode .switchThumb{
   transform: translateX(calc(var(--switch-w) - var(--thumb) - (var(--switch-pad) * 2)));
 }
-
-/* Glow on focus/active */
 .themeSwitch:hover .switchTrack{ transform: translateY(-1px); }
 .themeSwitch:active .switchTrack{ transform: translateY(0) scale(0.98); }
-
 .themeSwitch input:focus-visible + .switchTrack{
   box-shadow:
     inset 0 0 0 1px color-mix(in oklab, var(--border) 60%, transparent),
     0 10px 24px rgba(0,0,0,0.22),
     0 0 0 6px var(--glow);
 }
-
-/* Icon (moon/sun) drawn without SVG */
 .switchIcon{
   width: 14px;
   height: 14px;
@@ -264,11 +293,8 @@ html.light-mode .switchThumb{
   position: relative;
   display:inline-block;
 }
-
-/* Dark mode icon = moon */
-.switchIcon{
-  background: rgba(0,0,0,0.55);
-}
+/* Dark icon = moon */
+.switchIcon{ background: rgba(0,0,0,0.55); }
 .switchIcon::after{
   content:"";
   position:absolute;
@@ -277,8 +303,7 @@ html.light-mode .switchThumb{
   background: var(--thumb-bg);
   transform: translate(4px, -3px);
 }
-
-/* Light mode icon = sun */
+/* Light icon = sun */
 html.light-mode .switchIcon{
   background: rgba(255, 193, 7, 0.95);
   box-shadow: 0 0 0 2px rgba(255,193,7,0.25);
@@ -288,9 +313,220 @@ html.light-mode .switchIcon::after{
   transform: none;
 }
 
-/* Reduced motion */
+/* =========================
+   Level Page Workspace (Responsive)
+   ========================= */
+.workspace{
+  width: min(var(--container), calc(100% - 32px));
+  margin: 18px auto 60px;
+  display: grid;
+  grid-template-columns: 320px 1fr 360px;
+  gap: 12px;
+}
+
+.panel{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-height: 260px;
+}
+
+.panelHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+}
+
+.panelTitle{
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.panelBody{
+  padding: 12px;
+}
+
+.editorBody{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+
+.instructionBox{
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.hintsTop{ margin-bottom: 10px; }
+
+.hintsBox{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+
+.hintItem{
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.previewFrame{
+  width: 100%;
+  height: 360px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.consoleBox{
+  width: 100%;
+  min-height: 360px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+  padding: 12px;
+  overflow:auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.statusBox{
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 10px 12px;
+  font-weight: 800;
+  font-size: 13px;
+}
+.statusBox.ok{
+  border-color: color-mix(in oklab, var(--ok) 60%, var(--border));
+}
+.statusBox.bad{
+  border-color: color-mix(in oklab, var(--bad) 60%, var(--border));
+}
+
+/* ---- Buttons (Level page) ---- */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor:pointer;
+  font-weight: 900;
+  transition: transform .15s ease, background-color .35s var(--ease);
+}
+.btn:hover{ transform: translateY(-1px); }
+.btn:active{ transform: translateY(0) scale(0.98); }
+.btn.small{ padding: 8px 10px; border-radius: 12px; font-size: 12px; }
+.btn.primary{
+  background: color-mix(in oklab, var(--brand) 35%, var(--surface-2));
+  border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
+}
+.btn.ghost{
+  background: transparent;
+  border-color: var(--border);
+}
+.btn.full{ width: 100%; }
+
+.rowBtns{ display:flex; flex-wrap:wrap; gap: 8px; }
+.tabs, .smallTabs{ display:flex; gap: 8px; flex-wrap:wrap; }
+.tab{
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-weight: 900;
+  cursor:pointer;
+}
+.tab.active{
+  background: color-mix(in oklab, var(--brand-2) 28%, var(--surface-2));
+  border-color: color-mix(in oklab, var(--brand-2) 35%, var(--border));
+}
+
+/* ---- Home Name Modal ---- */
+.nameModal{
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  padding: 18px;
+}
+.nameModal.show{ display: grid; }
+
+.nameCard{
+  width: min(420px, 100%);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+  color: #0b0f19;
+}
+.nameTitle{ font-weight: 900; font-size: 18px; }
+.nameSub{ margin-top: 6px; opacity: .75; font-size: 13px; line-height: 1.6; }
+
+.nameInput{
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.14);
+  outline: none;
+  font-size: 14px;
+}
+.nameErr{
+  margin-top: 8px;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 900;
+}
+.nameActions{ margin-top: 12px; display:flex; justify-content:flex-start; }
+
+.btnPrimary{
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 900;
+  cursor: pointer;
+  background: #111827;
+  color: #fff;
+}
+
+/* ---- Responsive (Mobile first) ---- */
+@media (max-width: 980px){
+  .workspace{
+    grid-template-columns: 1fr;
+  }
+  .previewFrame, .consoleBox{ min-height: 260px; height: 260px; }
+  .brandSub{ max-width: 78vw; }
+}
+
 @media (prefers-reduced-motion: reduce){
-  body.bg, .card, .switchTrack, .switchThumb{
+  body.bg, .card, .switchTrack, .switchThumb, .levelBtn, .btn{
     transition: none !important;
   }
 }
