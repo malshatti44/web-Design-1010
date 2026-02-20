@@ -33,7 +33,7 @@
     <section class="card">
       <div class="cardHead">
         <h1 class="h1">المستويات (8)</h1>
-        <p class="muted">ملاحظة: الاسم الثلاثي يُطلب داخل كل مستوى عند البدء.</p>
+        <p class="muted">ملاحظة: الاسم الثلاثي يُطلب مرة واحدة فقط في الصفحة الرئيسية.</p>
       </div>
 
       <div id="levelsGrid" class="levelsGrid" aria-label="Levels"></div>
@@ -47,6 +47,24 @@
       </div>
     </section>
   </main>
+
+  <!-- Home Name Modal (One time only) -->
+  <div id="homeNameModal" class="nameModal" aria-hidden="true">
+    <div class="nameCard" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+      <div class="nameTitle" id="nameTitle">اكتب اسمك الثلاثي</div>
+      <div class="nameSub">ينحفظ تلقائيًا، ولن يُطلب مرة أخرى داخل المستويات.</div>
+
+      <input id="homeNameInput" class="nameInput" type="text"
+             placeholder="مثال: محمد سليمان عبدالله"
+             autocomplete="name" />
+
+      <div id="homeNameErr" class="nameErr"></div>
+
+      <div class="nameActions">
+        <button class="btnPrimary" id="homeNameSaveBtn" type="button">بدء التدريب</button>
+      </div>
+    </div>
+  </div>
 
   <script src="./assets/theme.js"></script>
   <script src="./assets/levels.js"></script>
