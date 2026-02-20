@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
 </head>
+
 <body class="bg">
 
   <header class="topbar">
@@ -60,7 +61,6 @@
       <div class="panelHeader">
         <div class="panelTitle">Editor</div>
         <div class="rowBtns">
-          <!-- زر إعادة الضبط بعد التعديل -->
           <button id="resetPrevBtn" class="btn ghost small" type="button">إعادة ضبط الخطوة الحالية</button>
           <button id="runBtn" class="btn small" type="button">Run</button>
           <button id="checkBtn" class="btn primary small" type="button">Check</button>
@@ -94,23 +94,6 @@
       </div>
     </aside>
   </main>
-
-  <!-- Name Modal (per level) -->
-  <div id="nameModal" class="modal" aria-hidden="false">
-    <div class="modalCard">
-      <h2 class="h2">بدء المستوى</h2>
-      <p class="muted">اكتب الاسم الثلاثي لبدء الحل</p>
-
-      <label class="label">الاسم الثلاثي</label>
-      <input id="nameInput" class="input" placeholder="مثال: أحمد محمد حمد" autocomplete="off" />
-
-      <div id="nameErr" class="err"></div>
-
-      <button id="startBtn" class="btn primary full" type="button">ابدأ</button>
-    </div>
-  </div>
-
-  <!-- تم إزالة دالة copyToClipboard لأنها لم تعد مستخدمة -->
 
   <!-- CodeMirror scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
