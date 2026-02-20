@@ -14,6 +14,16 @@
   --sans:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
 }
 
+/* Light Mode Colors */
+html.light-mode {
+  --bg:#f8f9fa;
+  --text:#1a1d2e;
+  --muted:#6b7280;
+  --line:rgba(0,0,0,.08);
+  --card:rgba(0,0,0,.02);
+  --shadow:0 12px 30px rgba(0,0,0,.1);
+}
+
 *{ box-sizing:border-box; }
 body{
   margin:0;
@@ -23,7 +33,16 @@ body{
     radial-gradient(900px 500px at 20% 0%, rgba(124,92,255,.25), transparent 60%),
     radial-gradient(900px 500px at 100% 40%, rgba(57,217,138,.12), transparent 55%),
     var(--bg);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+html.light-mode body {
+  background:
+    radial-gradient(900px 500px at 20% 0%, rgba(124,92,255,.08), transparent 60%),
+    radial-gradient(900px 500px at 100% 40%, rgba(57,217,138,.05), transparent 55%),
+    var(--bg);
+}
+
 .bg{ min-height:100vh; }
 
 .topbar{
@@ -33,7 +52,13 @@ body{
   background:rgba(10,14,30,.65);
   backdrop-filter:blur(10px);
   position:sticky; top:0; z-index:10;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
+
+html.light-mode .topbar {
+  background:rgba(248,249,250,.95);
+}
+
 .brand{ display:flex; align-items:center; gap:12px; }
 .logoDot{
   width:12px; height:12px; border-radius:999px;
@@ -44,6 +69,65 @@ body{
 .brandSub{ color:var(--muted); font-size:13px; margin-top:2px; }
 .dotSep{ margin:0 8px; color:rgba(255,255,255,.25); }
 
+/* Theme Toggle Button */
+.themeToggle{
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  color:var(--text);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition: all 0.2s ease;
+  padding:0;
+  font-size:0;
+}
+
+.themeToggle:hover{
+  background:rgba(255,255,255,.1);
+  transform:translateY(-2px);
+}
+
+.themeToggle svg{
+  width:20px;
+  height:20px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.themeToggle .sunIcon{
+  opacity:1;
+  transform:rotate(0deg);
+  position:absolute;
+}
+
+.themeToggle .moonIcon{
+  opacity:0;
+  transform:rotate(-90deg);
+  position:absolute;
+}
+
+html.light-mode .themeToggle .sunIcon{
+  opacity:0;
+  transform:rotate(90deg);
+}
+
+html.light-mode .themeToggle .moonIcon{
+  opacity:1;
+  transform:rotate(0deg);
+}
+
+html.light-mode .themeToggle {
+  background:rgba(0,0,0,.05);
+  border-color:rgba(0,0,0,.1);
+}
+
+html.light-mode .themeToggle:hover {
+  background:rgba(0,0,0,.1);
+}
+
 .container{ max-width:980px; margin:24px auto; padding:0 16px; }
 .card{
   background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
@@ -51,7 +135,13 @@ body{
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:18px;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+html.light-mode .card {
+  background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.01));
+}
+
 .cardHead{ margin-bottom:14px; }
 .h1{ margin:0 0 6px; font-size:22px; }
 .muted{ color:var(--muted); }
@@ -101,7 +191,14 @@ body{
   border:1px dashed rgba(255,255,255,.18);
   border-radius:14px;
   background:rgba(255,255,255,.03);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
+
+html.light-mode .note {
+  border-color:rgba(0,0,0,.1);
+  background:rgba(0,0,0,.02);
+}
+
 .noteTitle{ font-weight:900; margin-bottom:6px; }
 
 .workspace{
@@ -121,7 +218,13 @@ body{
   display:flex;
   flex-direction:column;
   min-height:0;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+html.light-mode .panel {
+  background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.01));
+}
+
 .panelHeader{
   padding:12px;
   border-bottom:1px solid var(--line);
@@ -129,6 +232,7 @@ body{
   justify-content:space-between;
   align-items:center;
   gap:10px;
+  transition: border-color 0.3s ease;
 }
 .panelTitle{ font-weight:900; }
 .panelBody{
@@ -137,7 +241,7 @@ body{
   min-height:0;
 }
 
-.tabs,.smallTabs{ display:flex; gap:8px; }
+tabs,.smallTabs{ display:flex; gap:8px; }
 .tab{
   border:1px solid var(--line);
   background:rgba(255,255,255,.04);
@@ -147,6 +251,7 @@ body{
   cursor:pointer;
   font-weight:900;
   font-size:12px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 .tab.active{
   border-color:rgba(124,92,255,.5);
@@ -159,6 +264,12 @@ body{
   border-radius:14px;
   background:rgba(0,0,0,.18);
   line-height:1.6;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+html.light-mode .instructionBox {
+  background:rgba(0,0,0,.05);
+  border-color:rgba(0,0,0,.1);
 }
 
 .hintsTop{ margin-bottom:10px; display:flex; justify-content:flex-end; }
@@ -170,6 +281,12 @@ body{
   background:rgba(255,255,255,.03);
   color:var(--muted);
   line-height:1.5;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+html.light-mode .hintItem {
+  border-color:rgba(0,0,0,.08);
+  background:rgba(0,0,0,.03);
 }
 
 .editorBody{ padding:0; }
@@ -197,6 +314,12 @@ body{
   color:var(--muted);
   min-height:420px;
   white-space:pre-wrap;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+html.light-mode .consoleBox {
+  background:rgba(0,0,0,.05);
+  border-color:rgba(0,0,0,.1);
 }
 
 .statusBox{
@@ -206,7 +329,13 @@ body{
   border:1px solid var(--line);
   background:rgba(0,0,0,.18);
   font-weight:900;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
+
+html.light-mode .statusBox {
+  background:rgba(0,0,0,.05);
+}
+
 .statusBox.ok{ border-color:rgba(57,217,138,.4); color:var(--good); }
 .statusBox.bad{ border-color:rgba(255,92,122,.45); color:var(--bad); }
 
@@ -217,7 +346,13 @@ body{
   background:rgba(0,0,0,.55);
   padding:18px;
   z-index:50;
+  transition: background-color 0.3s ease;
 }
+
+html.light-mode .modal {
+  background:rgba(0,0,0,.35);
+}
+
 .modalCard{
   width:100%;
   max-width:420px;
@@ -226,7 +361,13 @@ body{
   border-radius:18px;
   box-shadow:var(--shadow);
   padding:16px;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+html.light-mode .modalCard {
+  background:linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.01));
+}
+
 .h2{ margin:0 0 6px; font-size:18px; }
 .label{ display:block; font-size:12px; color:var(--muted); margin-top:10px; }
 .input{
@@ -238,7 +379,13 @@ body{
   color:var(--text);
   outline:none;
   margin-top:6px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
+
+html.light-mode .input {
+  background:rgba(0,0,0,.08);
+}
+
 .input:focus{ border-color:rgba(124,92,255,.55); box-shadow:0 0 0 4px rgba(124,92,255,.15); }
 .err{
   margin-top:10px;
