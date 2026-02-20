@@ -1,33 +1,132 @@
 const qs = (id) => document.getElementById(id);
 
-// ✅ ضع رابط Google Apps Script Web App (/exec) هنا
+// ✅ رابط Google Apps Script Web App (/exec)
 const SHEET_ENDPOINT =
   "https://script.google.com/macros/s/AKfycbyoDBgujdYJZJR1FIqYosVzN74sLoW8YQvza-lE7yfkxArvxUnnOgIvRBgUzicuf5cn5g/exec";
 
+// ====== Local Storage Keys ======
+const NAME_KEY = "wd1010_full_name";
+const DONE_KEY = "wd1010_done_levels"; // { "1": true, "2": true ... }
+
+function getSavedName() {
+  return (localStorage.getItem(NAME_KEY) || "").trim();
+}
+function setSavedName(name) {
+  localStorage.setItem(NAME_KEY, (name || "").trim());
+}
 function isValidTripleName(name) {
   const parts = (name || "").trim().split(/\s+/).filter(Boolean);
   return parts.length >= 3 && parts.every((p) => p.length >= 2);
 }
+function getDoneMap() {
+  try {
+    return JSON.parse(localStorage.getItem(DONE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+function isDone(levelId) {
+  const m = getDoneMap();
+  return !!m[String(levelId)];
+}
+function setDone(levelId) {
+  const m = getDoneMap();
+  m[String(levelId)] = true;
+  localStorage.setItem(DONE_KEY, JSON.stringify(m));
+}
 
-/* ========== HOME (index.html) ========== */
+// ========== Google Sheet Logging ==========
+function logToSheet({ action, studentName, levelId }) {
+  if (!SHEET_ENDPOINT) return Promise.reject(new Error("SHEET_ENDPOINT not set"));
+
+  return fetch(SHEET_ENDPOINT, {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    body: JSON.stringify({ action, studentName, levelId }),
+    keepalive: true,
+  })
+    .then((r) => r.json().catch(() => ({ ok: false, error: "Bad JSON response" })))
+    .then((j) => {
+      if (!j.ok) throw new Error(j.error || "Sheet log failed");
+      return true;
+    });
+}
+
+// ========== HOME NAME MODAL ==========
+function openHomeNameModal() {
+  const modal = qs("homeNameModal");
+  const input = qs("homeNameInput");
+  const err = qs("homeNameErr");
+  if (!modal) return;
+
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+  if (err) err.textContent = "";
+  setTimeout(() => input?.focus(), 60);
+}
+function closeHomeNameModal() {
+  const modal = qs("homeNameModal");
+  if (!modal) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+function initHomeNameModal() {
+  const btn = qs("homeNameSaveBtn");
+  const input = qs("homeNameInput");
+  const err = qs("homeNameErr");
+  if (!btn || !input) return;
+
+  const save = () => {
+    const name = (input.value || "").trim().replace(/\s+/g, " ");
+    if (!isValidTripleName(name)) {
+      if (err) err.textContent = "اكتب الاسم الثلاثي بشكل صحيح (٣ كلمات على الأقل).";
+      input.focus();
+      return;
+    }
+    setSavedName(name);
+    closeHomeNameModal();
+  };
+
+  btn.addEventListener("click", save);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") save();
+  });
+}
+
+// ========== HOME (index.html) ==========
 function initHome() {
   const grid = qs("levelsGrid");
   if (!grid || !window.LEVELS) return;
 
   grid.innerHTML = "";
+
   window.LEVELS.forEach((level) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "levelBtn";
     btn.textContent = String(level.id);
     btn.title = level.title;
+
+    // ✅ للّون الأخضر
+    btn.setAttribute("data-level", String(level.id));
+    if (isDone(level.id)) btn.classList.add("isDone");
+
     btn.addEventListener("click", () => {
+      if (!getSavedName()) {
+        openHomeNameModal();
+        return;
+      }
       const u = new URL("./level.html", window.location.href);
       u.searchParams.set("level", String(level.id));
       window.location.href = u.toString();
     });
+
     grid.appendChild(btn);
   });
+
+  // ✅ اطلب الاسم مرة واحدة فقط في الرئيسية
+  if (!getSavedName()) openHomeNameModal();
 }
 
 /* ========== LEVEL ENGINE (level.html) ========== */
@@ -37,7 +136,7 @@ let stepIndex = 0;
 let hintIndex = 0;
 let STUDENT_NAME = "";
 let LAST_STEP_PASSED = false;
-let START_LOGGED = false; // ✅ حتى ما يكرر Processing بالغلط
+let START_LOGGED = false;
 
 function escapeHtml(s) {
   return (s || "").replace(/[&<>"']/g, (m) => ({
@@ -121,28 +220,6 @@ function addHint(step) {
   box.appendChild(div);
 }
 
-/* ================== SHEET LOGGING ==================
-   ✅ fetch JSON (ما يفتح /exec)
-   ✅ نسجّل فقط start و submit
-====================================================== */
-function logToSheet({ action, studentName, levelId }) {
-  if (!SHEET_ENDPOINT) return Promise.reject(new Error("SHEET_ENDPOINT not set"));
-
-  return fetch(SHEET_ENDPOINT, {
-    method: "POST",
-    mode: "cors",
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
-    body: JSON.stringify({ action, studentName, levelId }),
-    keepalive: true,
-  })
-    .then((r) => r.json().catch(() => ({ ok: false, error: "Bad JSON response" })))
-    .then((j) => {
-      if (!j.ok) throw new Error(j.error || "Sheet log failed");
-      return true;
-    });
-}
-
-/* ================== STEP CONTROL ================== */
 function loadStep(index) {
   stepIndex = index;
   hintIndex = 0;
@@ -193,8 +270,6 @@ function checkStep() {
   setStatus("ok", "✅ أنجزت الخطوة بنجاح!");
   logConsole("PASSED");
 
-  // ❌ لا نسجل كل خطوة (حسب طلبك)
-
   if (stepIndex === currentLevel.steps.length - 1) {
     LAST_STEP_PASSED = true;
     qs("submitBtn")?.classList.remove("hidden");
@@ -212,12 +287,14 @@ async function submitSolution() {
   }
 
   try {
-    // ✅ نسجّل فقط Submit = Complete
     await logToSheet({
       action: "submit",
       studentName: STUDENT_NAME,
       levelId: currentLevel.id,
     });
+
+    // ✅ علّم المستوى مكتمل محليًا (للون الأخضر في الرئيسية)
+    setDone(currentLevel.id);
 
     setStatus("ok", "✅ تم إرسال الحل وتسجيله: Complete");
     logConsole("COMPLETE ✅");
@@ -239,6 +316,14 @@ function initLevel() {
     window.location.href = "./index.html";
     return;
   }
+
+  // ✅ الاسم من الرئيسية فقط
+  STUDENT_NAME = getSavedName();
+  if (!STUDENT_NAME) {
+    window.location.href = "./index.html";
+    return;
+  }
+  qs("studentNameLabel").textContent = STUDENT_NAME;
 
   qs("levelTitle").textContent = `Level ${currentLevel.id} — ${currentLevel.title}`;
 
@@ -263,49 +348,25 @@ function initLevel() {
   qs("resetPrevBtn")?.addEventListener("click", resetToPreviousStepStarter);
   qs("submitBtn")?.addEventListener("click", submitSolution);
 
-  // ✅ مودال الاسم
-  const modal = qs("nameModal");
-  const startBtn = qs("startBtn");
-  const nameInput = qs("nameInput");
-  const nameErr = qs("nameErr");
-
-  const start = async () => {
-    const name = (nameInput?.value || "").trim();
-    if (!isValidTripleName(name)) {
-      if (nameErr) nameErr.textContent = "اكتب الاسم الثلاثي بشكل صحيح (٣ كلمات على الأقل).";
-      return;
-    }
-
-    STUDENT_NAME = name;
-    qs("studentNameLabel").textContent = STUDENT_NAME;
-
-    modal.style.display = "none";
-    modal.setAttribute("aria-hidden", "true");
-
-    // ✅ سجّل Processing مرة وحدة فقط عند الدخول
-    if (!START_LOGGED) {
-      START_LOGGED = true;
-      logToSheet({
-        action: "start",
-        studentName: STUDENT_NAME,
-        levelId: currentLevel.id,
-      }).catch(() => {});
-    }
-
-    loadStep(0);
-  };
-
-  startBtn?.addEventListener("click", start);
-  nameInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") start();
-  });
+  // ✅ سجّل start للمستوى مرة وحدة
+  if (!START_LOGGED) {
+    START_LOGGED = true;
+    logToSheet({
+      action: "start",
+      studentName: STUDENT_NAME,
+      levelId: currentLevel.id,
+    }).catch(() => {});
+  }
 
   showTabLeft("instructions");
   showTabRight("preview");
+
+  loadStep(0);
 }
 
 /* Boot */
 document.addEventListener("DOMContentLoaded", () => {
+  initHomeNameModal();
   initHome();
   initLevel();
 });
